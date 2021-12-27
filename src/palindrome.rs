@@ -2,6 +2,7 @@ mod tests;
 mod ascii;
 mod fragment;
 use fragment::Fragment;
+use ascii::equal_reversed;
 
 pub fn generate_palindromes(word_list: &[&str], max_word_count: usize) -> Vec<String> {
     let cores = word_list.iter()
@@ -18,9 +19,30 @@ pub fn generate_palindromes(word_list: &[&str], max_word_count: usize) -> Vec<St
     palindrome_list
 }
 
+fn get_words_for_prepending<'a>(word_list: &[&'a str], matching_part: &str) -> Vec<&'a str> {
+    word_list.iter()
+        .map(|&word| word)
+        .filter(|&word| equal_reversed(matching_part, word))
+        .collect()
+}
+
+fn get_words_for_appending<'a>(word_list: &[&'a str], matching_part: &str) -> Vec<&'a str> {
+    word_list.iter()
+        .map(|&word| word)
+        .filter(|&word| equal_reversed(word, matching_part))
+        .collect()
+}
+
 fn add_palindromes_recursively<'a>(word_list: &[&'a str], max_word_count: usize, palindrome_list: &mut Vec<String>, fragment: Fragment<'a>) {
     if fragment.len() < max_word_count {
-        let extensions = word_list.iter().filter_map(|&word| fragment.extend(word));
+        let words = 
+            if fragment.can_prepend() {
+                get_words_for_prepending(word_list, fragment.loose_end())
+            } else {
+                get_words_for_appending(word_list, fragment.loose_beginning())
+            };
+        
+        let extensions = words.iter().map(|&word| fragment.extend(word));
         for extension in extensions {
             add_palindromes_recursively(word_list, max_word_count, palindrome_list, extension)
         }

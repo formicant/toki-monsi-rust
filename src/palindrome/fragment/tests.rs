@@ -20,34 +20,34 @@ fn test_from_single_word(word: &str, offset: isize) -> bool {
 
 #[test_case("alasa", 2, "la"     => panics)]
 #[test_case("ala",   0, "a"      => panics)]
-#[test_case("kala", -3, "li"     => None)]
-#[test_case("kala", -3, "a"      => Some(-2))]
-#[test_case("kala", -3, "ala"    => Some(0))]
-#[test_case("kala", -3, "pakala" => Some(3))]
-fn test_prepend(initial_word: &str, initial_offset: isize, prepended_word: &str) -> Option<isize> {
-    let initial = Fragment::from_single_word(initial_word, initial_offset);
-    let prepended = initial?.prepend(prepended_word);
-    Some(prepended?.offset)
+#[test_case("kala", -3, "li"     => panics)]
+#[test_case("kala", -3, "a"      => -2)]
+#[test_case("kala", -3, "ala"    => 0)]
+#[test_case("kala", -3, "pakala" => 3)]
+fn test_prepend_offset(initial_word: &str, initial_offset: isize, prepended_word: &str) -> isize {
+    let initial = Fragment::from_single_word(initial_word, initial_offset).unwrap();
+    let prepended = initial.prepend(prepended_word);
+    prepended.offset
 }
 
 #[test_case("kala", -3, "ala"  => panics)]
-#[test_case("alasa", 2, "li"   => None)]
-#[test_case("ala",   0, "a"    => Some(-1))]
-#[test_case("alasa", 2, "la"   => Some(0))]
-#[test_case("alasa", 2, "lape" => Some(-2))]
-#[test_case("wile",  3, "li"   => Some(1))]
-fn test_append(initial_word: &str, initial_offset: isize, appended_word: &str) -> Option<isize> {
-    let initial = Fragment::from_single_word(initial_word, initial_offset);
-    let appended = initial?.append(appended_word);
-    Some(appended?.offset)
+#[test_case("alasa", 2, "li"   => panics)]
+#[test_case("ala",   0, "a"    => -1)]
+#[test_case("alasa", 2, "la"   => 0)]
+#[test_case("alasa", 2, "lape" => -2)]
+#[test_case("wile",  3, "li"   => 1)]
+fn test_append_offset(initial_word: &str, initial_offset: isize, appended_word: &str) -> isize {
+    let initial = Fragment::from_single_word(initial_word, initial_offset).unwrap();
+    let appended = initial.append(appended_word);
+    appended.offset
 }
 
 #[test]
 fn test_multiple_operations() {
     let fragment = Fragment::from_single_word("pipi", 1).unwrap()
-        .append("pilin").unwrap()
-        .prepend("li").unwrap()
-        .prepend("ni").unwrap();
+        .append("pilin")
+        .prepend("li")
+        .prepend("ni");
     
     assert!(fragment.is_complete());
     assert_eq!(fragment.len(), 4);

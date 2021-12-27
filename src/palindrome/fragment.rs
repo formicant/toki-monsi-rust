@@ -11,21 +11,35 @@ pub struct Fragment<'a> {
 }
 
 impl<'a> Fragment<'a> {
-    pub fn is_complete(&self) -> bool {
-        self.offset == 0
-    }
+    pub fn len(&self) -> usize { self.words.len() }
     
-    pub fn len(&self) -> usize {
-        self.words.len()
-    }
+    pub fn is_complete(&self) -> bool { self.offset == 0 }
+    
+    pub fn can_prepend(&self) -> bool { self.offset < 0 }
+    
+    pub fn can_append(&self) -> bool { self.offset >= 0 }
     
     pub fn get_phrase(&self) -> String {
         self.words.join(" ")
     }
     
+    pub fn loose_end(&self) -> &str {
+        debug_assert!(self.can_prepend());
+        let last_word = self.words.last().unwrap();
+        let abs_offset = -self.offset as usize;
+        &last_word[last_word.len() - abs_offset..]
+    }
+    
+    pub fn loose_beginning(&self) -> &str {
+        debug_assert!(self.can_append());
+        let first_word = self.words.first().unwrap();
+        let abs_offset = self.offset as usize;
+        &first_word[..abs_offset]
+    }
+    
     pub fn from_single_word(word: &str, offset: isize) -> Option<Fragment> {
         let length = word.len() as isize;
-        assert!((-length..length).contains(&offset));
+        debug_assert!((-length..length).contains(&offset));
         
         let matching_part =
             if offset < 0 { &word[..(length + offset) as usize] }
@@ -39,41 +53,29 @@ impl<'a> Fragment<'a> {
         }
     }
     
-    pub fn extend(&self, word: &'a str) -> Option<Fragment<'a>> {
-        if self.offset < 0 {
+    pub fn extend(&self, word: &'a str) -> Fragment<'a> {
+        if self.can_prepend() {
             self.prepend(word)
         } else {
             self.append(word)
         }
     }
     
-    fn prepend(&self, word: &'a str) -> Option<Fragment<'a>> {
-        assert!(self.offset < 0);
-        let abs_offset = -self.offset as usize;
-        let last_word = self.words.last()?;
-        let matching_part = &last_word[last_word.len() - abs_offset..];
+    fn prepend(&self, word: &'a str) -> Fragment<'a> {
+        debug_assert!(self.can_prepend());
+        debug_assert!(equal_reversed(self.loose_end(), word));
         
-        if equal_reversed(matching_part, word) {
-            let words = self.words.clone_and_prepend(word);
-            let offset = self.offset + word.len() as isize;
-            Some(Fragment { words, offset })
-        } else {
-            None
-        }
+        let words = self.words.clone_and_prepend(word);
+        let offset = self.offset + word.len() as isize;
+        Fragment { words, offset }
     }
     
-    fn append(&self, word: &'a str) -> Option<Fragment<'a>> {
-        assert!(self.offset >= 0);
-        let abs_offset = self.offset as usize;
-        let first_word = self.words.first()?;
-        let matching_part = &first_word[..abs_offset];
+    fn append(&self, word: &'a str) -> Fragment<'a> {
+        debug_assert!(self.can_append());
+        debug_assert!(equal_reversed(word, self.loose_beginning()));
         
-        if equal_reversed(word, matching_part) {
-            let words = self.words.clone_and_append(word);
-            let offset = self.offset - word.len() as isize;
-            Some(Fragment { words, offset })
-        } else {
-            None
-        }
+        let words = self.words.clone_and_append(word);
+        let offset = self.offset - word.len() as isize;
+        Fragment { words, offset }
     }
 }
