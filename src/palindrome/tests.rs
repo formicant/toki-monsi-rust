@@ -42,3 +42,8 @@ fn test_case_insensitiveness() {
     
     assert_eq!(actual, EXPECTED);
 }
+
+#[test]
+fn test_max_count_zero() {
+    assert_eq!(generate_palindromes(&PU_WORDS, 0).len(), 0)   
+}

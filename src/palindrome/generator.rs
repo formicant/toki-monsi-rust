@@ -54,10 +54,16 @@ impl<'a> Generator<'a> {
     }
     
     fn add_palindromes_recursively(&mut self, fragment: Fragment) {
+        let word_count = fragment.len();
+
+        if word_count > self.max_word_count {
+            return
+        }
+
         if fragment.is_complete() {
             self.palindrome_list.push(fragment.get_phrase());
         }
-        if fragment.len() < self.max_word_count {
+        if word_count < self.max_word_count {
             let words = 
                 if fragment.can_prepend() {
                     self.get_words_for_prepending(fragment.loose_end())
