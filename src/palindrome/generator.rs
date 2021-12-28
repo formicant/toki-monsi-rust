@@ -21,16 +21,8 @@ impl<'a> Generator<'a> {
         }
     }
     
-    pub fn generate(&mut self) {
-        let cores = self.word_list.iter()
-            .flat_map(|&word| {
-                let length = word.len() as isize;
-                (-length..length).filter_map(|offset| Fragment::from_single_word(word, offset))
-            });
-        
-        for core in cores {
-            self.add_palindromes_recursively(core);
-        }
+    pub fn generate_from_core(&mut self, core: &Fragment<'a>) {
+        self.add_palindromes_recursively(core);
     }
     
     pub fn into_palindrome_list(self) -> Vec<String> { self.palindrome_list }
@@ -53,7 +45,7 @@ impl<'a> Generator<'a> {
                     .collect())
     }
     
-    fn add_palindromes_recursively(&mut self, fragment: Fragment<'a>) {
+    fn add_palindromes_recursively(&mut self, fragment: &Fragment<'a>) {
         let word_count = fragment.len();
         debug_assert!(word_count <= self.max_word_count);
         
@@ -70,8 +62,8 @@ impl<'a> Generator<'a> {
                 };
             
             let extensions: Vec<_> = words.iter().map(|&word| fragment.extend(word)).collect();
-            for extension in extensions {
-                self.add_palindromes_recursively(extension)
+            for extension in extensions.iter() {
+                self.add_palindromes_recursively(&extension)
             }
         }
     }
