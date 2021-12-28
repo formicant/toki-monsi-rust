@@ -7,7 +7,7 @@ use fragment::Fragment;
 use generator::Generator;
 
 pub fn generate_palindromes(word_list: &[&str], max_word_count: usize) -> Vec<String> {
-        if max_word_count == 0 {
+    if max_word_count == 0 {
         return Vec::new()
     }
     
