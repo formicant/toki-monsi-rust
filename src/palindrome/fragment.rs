@@ -23,14 +23,14 @@ impl<'a> Fragment<'a> {
         self.words.join(" ")
     }
     
-    pub fn loose_end(&self) -> &str {
+    pub fn loose_end(&self) -> &'a str {
         debug_assert!(self.can_prepend());
         let last_word = self.words.last().unwrap();
         let abs_offset = -self.offset as usize;
         &last_word[last_word.len() - abs_offset..]
     }
     
-    pub fn loose_beginning(&self) -> &str {
+    pub fn loose_beginning(&self) -> &'a str {
         debug_assert!(self.can_append());
         let first_word = self.words.first().unwrap();
         let abs_offset = self.offset as usize;

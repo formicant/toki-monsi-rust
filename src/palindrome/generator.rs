@@ -6,8 +6,8 @@ pub struct Generator<'a> {
     word_list: &'a [&'a str],
     max_word_count: usize,
     palindrome_list: Vec<String>,
-    words_for_prepending: HashMap<String, Vec<&'a str>>,
-    words_for_appending: HashMap<String, Vec<&'a str>>,
+    words_for_prepending: HashMap<&'a str, Vec<&'a str>>,
+    words_for_appending: HashMap<&'a str, Vec<&'a str>>,
 }
 
 impl<'a> Generator<'a> {
@@ -35,8 +35,8 @@ impl<'a> Generator<'a> {
     
     pub fn into_palindrome_list(self) -> Vec<String> { self.palindrome_list }
     
-    fn get_words_for_prepending(&mut self, matching_part: &str) -> &Vec<&'a str> {
-        self.words_for_prepending.entry(String::from(matching_part))
+    fn get_words_for_prepending(&mut self, matching_part: &'a str) -> &Vec<&'a str> {
+        self.words_for_prepending.entry(matching_part)
             .or_insert_with(||
                 self.word_list.iter()
                     .map(|&word| word)  // ???
@@ -44,8 +44,8 @@ impl<'a> Generator<'a> {
                     .collect())
     }
     
-    fn get_words_for_appending(&mut self, matching_part: &str) -> &Vec<&'a str> {
-        self.words_for_appending.entry(String::from(matching_part))
+    fn get_words_for_appending(&mut self, matching_part: &'a str) -> &Vec<&'a str> {
+        self.words_for_appending.entry(matching_part)
             .or_insert_with(||
                 self.word_list.iter()
                     .map(|&word| word)  // ???
@@ -53,7 +53,7 @@ impl<'a> Generator<'a> {
                     .collect())
     }
     
-    fn add_palindromes_recursively(&mut self, fragment: Fragment) {
+    fn add_palindromes_recursively(&mut self, fragment: Fragment<'a>) {
         let word_count = fragment.len();
         debug_assert!(word_count <= self.max_word_count);
         
