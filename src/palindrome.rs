@@ -26,7 +26,7 @@ pub fn generate_palindromes(word_list: &[&str], max_word_count: usize) -> Vec<St
     let chunks: Vec<_> = all_cores.chunks(chunk_size).collect();
     
     chunks.par_iter()
-        .flat_map(|chunk| generate_from_cores(chunk))
+        .flat_map(|&chunk| generate_from_cores(chunk))
         .collect()
 }
 
