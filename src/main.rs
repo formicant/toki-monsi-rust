@@ -2,7 +2,7 @@ mod command_line;
 use std::process;
 use std::path::PathBuf;
 use std::fs::File;
-use std::io::Write;
+use std::io::{BufWriter, Write};
 use std::time::Instant;
 use structopt::StructOpt;
 use toki_monsi_rust::*;
@@ -26,7 +26,7 @@ fn write_to_stdout(max_word_count: usize, sort: Option<SortCriterion>) {
 
 fn write_to_file(max_word_count: usize, sort: Option<SortCriterion>, file_path: PathBuf) {
     let path_string = file_path.to_string_lossy();
-    let mut file = match File::create(&file_path) {
+    let file = match File::create(&file_path) {
         Ok(file) => file,
         Err(message) => {
             eprintln!("Cannot create file '{}': {}", path_string, message);
@@ -45,8 +45,10 @@ fn write_to_file(max_word_count: usize, sort: Option<SortCriterion>, file_path: 
     println!("  elapsed: {:.3} s", elapsed);
     
     println!("Saving to file '{}'...", path_string);
+    
+    let mut writer = BufWriter::new(file);
     for palindrome in palindromes {
-        match writeln!(&mut file, "{}", palindrome) {
+        match writeln!(&mut writer, "{}", palindrome) {
             Ok(()) => (),
             Err(message) => {
                 eprintln!("Cannot write to file: {}", message);
