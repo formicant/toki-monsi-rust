@@ -3,6 +3,32 @@
 A Rust implementation of the [`toki-monsi`](https://github.com/formicant/toki-monsi) Toki Pona palindrome generator.
 
 
+## Usage
+
+```
+toki-monsi-rust [OPTIONS] <max-word-count>
+```
+
+| Argument           |                               |
+|--------------------|-------------------------------|
+| `<max-word-count>` | Maximum palindrome word count |
+
+| Options                   |                |                    |
+|---------------------------|----------------|--------------------|
+| `-o`, `--output <output>` | Output path    | `stdout` if absent |
+| `-s`, `--sort <sort>`     | Result sorting | unsorted if absent |
+- | Sort options        |
+  |---------------------|
+  | `-s A`, `-s alphabetical` |
+  | `-s L`, `-s length`       |
+  | `-s W`, `-s word-count`   |
+
+| flags             |                            |
+|-------------------|----------------------------|
+| `-h`, `--help`    | Prints help information    |
+| `-V`, `--version` | Prints version information |
+
+
 ## Performance
 
 Single-threaded, no grammar parsing:

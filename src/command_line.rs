@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 use structopt::StructOpt;
+use toki_monsi_rust::SortCriterion;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
@@ -14,4 +15,8 @@ pub struct Arguments {
     #[structopt(short, long)]
     #[structopt(parse(from_os_str))]
     pub output: Option<PathBuf>,
+    
+    /// Result sorting: A[lphabetical], L[ength], or W[ord-count]
+    #[structopt(short, long)]
+    pub sort: Option<SortCriterion>,
 }

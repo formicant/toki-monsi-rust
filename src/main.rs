@@ -5,26 +5,26 @@ use std::fs::File;
 use std::io::Write;
 use std::time::Instant;
 use structopt::StructOpt;
-use toki_monsi_rust::generate_palindromes;
+use toki_monsi_rust::*;
 
 fn main() {
-    let arguments = command_line::Arguments::from_args();
+    let args = command_line::Arguments::from_args();
     
-    match arguments.output {
-        Some(file_path) => write_to_file(arguments.max_word_count, file_path),
-        None => write_to_stdout(arguments.max_word_count),
+    match args.output {
+        Some(file_path) => write_to_file(args.max_word_count, args.sort, file_path),
+        None => write_to_stdout(args.max_word_count, args.sort),
     }
 }
 
-fn write_to_stdout(max_word_count: usize) {
-    let palindromes = generate_palindromes(max_word_count);
+fn write_to_stdout(max_word_count: usize, sort: Option<SortCriterion>) {
+    let palindromes = generate_palindromes(max_word_count, sort);
     
     for palindrome in palindromes {
         println!("{}", palindrome);
     }
 }
 
-fn write_to_file(max_word_count: usize, file_path: PathBuf) {
+fn write_to_file(max_word_count: usize, sort: Option<SortCriterion>, file_path: PathBuf) {
     let path_string = file_path.to_string_lossy();
     let mut file = match File::create(&file_path) {
         Ok(file) => file,
@@ -37,7 +37,7 @@ fn write_to_file(max_word_count: usize, file_path: PathBuf) {
     println!("Generating palindromes with max word count {}...", max_word_count);
     
     let start_time = Instant::now();
-    let palindromes = generate_palindromes(max_word_count);
+    let palindromes = generate_palindromes(max_word_count, sort);
     let end_time = Instant::now();
     let elapsed = (end_time - start_time).as_secs_f64();
     
