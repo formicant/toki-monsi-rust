@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 use std::str::FromStr;
 
+
 #[derive(Debug, PartialEq)]
 pub enum SortCriterion {
     Alphabetical,
@@ -41,6 +42,7 @@ impl SortCriterion {
     }
 }
 
+
 fn alphabetical_comparer(a: &String, b: &String) -> Ordering {
     a.cmp(b)
 }
@@ -62,5 +64,5 @@ fn word_count_comparer(a: &String, b: &String) -> Ordering {
 }
 
 fn count_spaces(s: &str) -> usize {
-    s.as_bytes().iter().filter(|&&b| b == ' ' as u8).count()
+    s.as_bytes().iter().filter(|&&b| b == b' ').count()
 }

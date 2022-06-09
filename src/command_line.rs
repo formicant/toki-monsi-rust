@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 use toki_monsi_rust::SortCriterion;
 
+
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "toki-monsi-rust",

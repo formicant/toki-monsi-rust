@@ -1,40 +1,69 @@
-mod tests;
-mod ascii;
-mod fragment;
-mod generator;
-use rayon::prelude::*;
-use fragment::Fragment;
-use generator::Generator;
+pub mod graph;
 
-pub fn generate_palindromes(word_list: &[&str], max_word_count: usize) -> Vec<String> {
-    if max_word_count == 0 {
-        return Vec::new()
-    }
-    
-    let all_cores = get_cores(word_list);
-    
-    let generate_from_cores = move |cores: &[Fragment]| {
-        let mut generator = Generator::create(word_list, max_word_count);
-        for core in cores.iter() {
-            generator.generate_from_core(&core);
-        }
-        generator.into_palindrome_list()
-    };
-    
-    let thread_count = num_cpus::get();
-    let chunk_size = 1 + (all_cores.len() - 1) / thread_count;
-    let chunks: Vec<_> = all_cores.chunks(chunk_size).collect();
-    
-    chunks.par_iter()
-        .flat_map(|&chunk| generate_from_cores(chunk))
-        .collect()
+#[cfg(test)]
+mod tests;
+
+use std::rc::Rc;
+
+use graph::{Graph, Node, StartEdge};
+
+
+
+pub struct PalindromeGenerator {
+    graph: Graph
 }
 
-fn get_cores<'a>(word_list: &[&'a str]) -> Vec<Fragment<'a>> {
-    word_list.iter()
-        .flat_map(|&word| {
-            let length = word.len() as isize;
-            (-length..length).filter_map(|offset| Fragment::from_single_word(word, offset))
-        })
-        .collect()  
+impl PalindromeGenerator {
+    pub fn new(word_list: &[&str]) -> Self {
+        Self { graph: Graph::build(word_list) }
+    }
+    
+    pub fn generate(&self, max_word_count: usize) -> Vec<String> {
+        let palindromes = self.graph.start_edges.iter()
+            .flat_map(|start_edge| get_palindromes_by_start_edge(&self.graph, &start_edge, max_word_count))
+            .collect();
+        
+        palindromes
+    }
+}
+
+
+fn get_palindromes_by_start_edge(graph: &Graph, start_edge: &StartEdge, max_word_count: usize) -> Vec<String> {
+    let mut palindromes = Vec::new();
+    
+    let mut stack = vec![(
+        Rc::clone(&start_edge.to_node),
+        max_word_count,
+        String::from(&start_edge.word)
+    )];
+    
+    while let Some((node, word_count, fragment)) = stack.pop() {
+        match graph.node_distances.get(&node) {
+            Some(&distance) if distance < word_count => {
+                
+                if word_count > 1 {
+                    for edge in graph.edges_form_node[&node].iter() {
+                        let word = &edge.word;
+                        let new_fragment = match &*node {
+                            Node::Tail(_) => format!("{word} {fragment}"),
+                            _             => format!("{fragment} {word}"),
+                        };
+                        
+                        stack.push((
+                            Rc::clone(&edge.to_node),
+                            word_count - 1,
+                            new_fragment
+                        ));
+                    }
+                }
+                
+                if distance == 0 {
+                    palindromes.push(fragment);
+                }
+            },
+            _ => { }
+        };
+    }
+    
+    palindromes
 }
