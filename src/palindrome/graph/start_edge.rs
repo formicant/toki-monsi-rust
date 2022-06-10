@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 use std::fmt;
 use caseless::default_case_fold_str;
 use unicode_segmentation::UnicodeSegmentation;
@@ -9,7 +9,7 @@ use super::Node;
 #[cfg_attr(test, derive(Debug, PartialEq, Eq))]
 pub struct StartEdge {
     pub word: String,
-    pub to_node: Rc<Node>,
+    pub to_node: Arc<Node>,
 }
 
 impl fmt::Display for StartEdge {

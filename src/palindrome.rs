@@ -3,7 +3,8 @@ pub mod graph;
 #[cfg(test)]
 mod tests;
 
-use std::rc::Rc;
+use std::sync::Arc;
+use rayon::prelude::*;
 
 use graph::{Graph, Node, StartEdge};
 
@@ -19,7 +20,7 @@ impl PalindromeGenerator {
     }
     
     pub fn generate(&self, max_word_count: usize) -> Vec<String> {
-        let palindromes = self.graph.start_edges.iter()
+        let palindromes = self.graph.start_edges.par_iter()
             .flat_map(|start_edge| get_palindromes_by_start_edge(&self.graph, &start_edge, max_word_count))
             .collect();
         
@@ -32,7 +33,7 @@ fn get_palindromes_by_start_edge(graph: &Graph, start_edge: &StartEdge, max_word
     let mut palindromes = Vec::new();
     
     let mut stack = vec![(
-        Rc::clone(&start_edge.to_node),
+        Arc::clone(&start_edge.to_node),
         max_word_count,
         String::from(&start_edge.word)
     )];
@@ -50,7 +51,7 @@ fn get_palindromes_by_start_edge(graph: &Graph, start_edge: &StartEdge, max_word
                         };
                         
                         stack.push((
-                            Rc::clone(&edge.to_node),
+                            Arc::clone(&edge.to_node),
                             word_count - 1,
                             new_fragment
                         ));
