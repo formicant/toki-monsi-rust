@@ -1,13 +1,12 @@
-pub mod graph;
+mod graph;
 mod vec_ext;
 
 #[cfg(test)]
 mod tests;
 
-use std::sync::Arc;
 use rayon::prelude::*;
 
-use graph::{Graph, Node, Edge};
+use graph::Graph;
 use vec_ext::VecExt;
 
 pub struct PalindromeGenerator {
@@ -20,51 +19,48 @@ impl PalindromeGenerator {
     }
     
     pub fn generate(&self, max_word_count: usize) -> Vec<String> {
-        match self.graph.edges_form_node.get(&Arc::new(Node::Start)) {
-            Some(start_edges) => start_edges.par_iter()
-                .flat_map(|start_edge| get_palindromes_by_start_edge(&self.graph, &start_edge, max_word_count))
-                .collect(),
-            None => Vec::new(),
-        }
+        self.graph.start_edge_indices.par_iter()
+            .flat_map(|&start_index| get_palindromes_by_start_edge(&self.graph, start_index, max_word_count))
+            .collect()
     }
 }
 
 
-fn get_palindromes_by_start_edge(graph: &Graph, start_edge: &Edge, max_word_count: usize) -> Vec<String> {
+fn get_palindromes_by_start_edge<'a> (graph: &Graph, start_index: usize, max_word_count: usize) -> Vec<String> {
     let mut palindromes = Vec::new();
     
-    let mut stack = vec![(
-        Arc::clone(&start_edge.to_node),
+    let mut stack: Vec<(usize, usize, Vec<&str>)> = vec![(
+        start_index,
         max_word_count,
-        vec![&start_edge.word[..]],
+        vec![&graph.edges[start_index].word[..]],
     )];
     
-    while let Some((node, word_count, fragment)) = stack.pop() {
-        match graph.node_distances.get(&node) {
-            Some(&distance) if distance < word_count => {
-                
-                if word_count > 1 {
-                    for edge in graph.edges_form_node[&node].iter() {
-                        let word = &edge.word[..];
-                        let new_fragment = match &*node {
-                            Node::Tail(_) => fragment.clone_and_prepend(word),
-                            _             => fragment.clone_and_append(word),
-                        };
-                        
-                        stack.push((
-                            Arc::clone(&edge.to_node),
-                            word_count - 1,
-                            new_fragment
-                        ));
-                    }
+    while let Some((index, word_count, fragment)) = stack.pop() {
+        let &distance = &graph.edge_distances[index];
+        
+        if distance < word_count {
+            if word_count > 1 {
+                for &next_index in graph.next_edge_indices[index].iter() {
+                    let next_edge = &graph.edges[next_index];
+                    let word = &next_edge.word[..];
+                    let new_fragment = if next_edge.is_prepending {
+                        fragment.clone_and_prepend(word)
+                    } else {
+                        fragment.clone_and_append(word)
+                    };
+                    
+                    stack.push((
+                        next_index,
+                        word_count - 1,
+                        new_fragment
+                    ));
                 }
-                
-                if distance == 0 {
-                    palindromes.push(fragment.join(" "));
-                }
-            },
-            _ => { }
-        };
+            }
+            
+            if distance == 0 {
+                palindromes.push(fragment.join(" "));
+            }
+        }
     }
     
     palindromes

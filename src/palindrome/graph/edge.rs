@@ -10,6 +10,7 @@ use super::Node;
 #[cfg_attr(test, derive(Debug, PartialEq, Eq))]
 pub struct Edge {
     pub from_node: Arc<Node>,
+    pub is_prepending: bool,
     pub word: String,
     pub to_node: Arc<Node>,
 }
@@ -32,6 +33,7 @@ impl Edge {
                 if let Some(to_node) = Node::try_create(&caseless_word, &caseless_word[..index]) {
                     start_edges.push(Self {
                         from_node: Arc::clone(&start_node),
+                        is_prepending: false,
                         word: String::from(word),
                         to_node,
                     });
@@ -39,6 +41,7 @@ impl Edge {
                 if let Some(to_node) = Node::try_create(&caseless_word[index..], &caseless_word) {
                     start_edges.push(Self {
                         from_node: Arc::clone(&start_node),
+                        is_prepending: false,
                         word: String::from(word),
                         to_node,
                     });
@@ -70,6 +73,7 @@ impl Edge {
                 if let Some(to_node) = possible_to_node {
                     edges.push(Self {
                         from_node: Arc::clone(&from_node),
+                        is_prepending: match *from_node { Node::Tail(_) => true, _ => false },
                         word: String::from(word),
                         to_node: Arc::clone(&to_node),
                     });

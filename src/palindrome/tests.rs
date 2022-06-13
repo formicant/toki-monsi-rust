@@ -31,6 +31,7 @@ fn is_palindromic(string: &str) -> bool {
 
 #[test_case(&NO_PALINDROME_POSSIBLE, 6)]
 #[test_case(&SMALL_WORD_LIST, 6)]
+#[test_case(&PU_WORDS, 1)]
 #[test_case(&PU_WORDS, 2)]
 fn test_generate_palindromes(word_list: &[&str], max_word_count: usize) {
     let generator = PalindromeGenerator::new(word_list);
