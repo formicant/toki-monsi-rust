@@ -1,4 +1,5 @@
 pub mod graph;
+mod vec_ext;
 
 #[cfg(test)]
 mod tests;
@@ -7,8 +8,7 @@ use std::sync::Arc;
 use rayon::prelude::*;
 
 use graph::{Graph, Node, Edge};
-
-
+use vec_ext::VecExt;
 
 pub struct PalindromeGenerator {
     graph: Graph
@@ -36,7 +36,7 @@ fn get_palindromes_by_start_edge(graph: &Graph, start_edge: &Edge, max_word_coun
     let mut stack = vec![(
         Arc::clone(&start_edge.to_node),
         max_word_count,
-        String::from(&start_edge.word)
+        vec![&start_edge.word[..]],
     )];
     
     while let Some((node, word_count, fragment)) = stack.pop() {
@@ -45,10 +45,10 @@ fn get_palindromes_by_start_edge(graph: &Graph, start_edge: &Edge, max_word_coun
                 
                 if word_count > 1 {
                     for edge in graph.edges_form_node[&node].iter() {
-                        let word = &edge.word;
+                        let word = &edge.word[..];
                         let new_fragment = match &*node {
-                            Node::Tail(_) => format!("{word} {fragment}"),
-                            _             => format!("{fragment} {word}"),
+                            Node::Tail(_) => fragment.clone_and_prepend(word),
+                            _             => fragment.clone_and_append(word),
                         };
                         
                         stack.push((
@@ -60,7 +60,7 @@ fn get_palindromes_by_start_edge(graph: &Graph, start_edge: &Edge, max_word_coun
                 }
                 
                 if distance == 0 {
-                    palindromes.push(fragment);
+                    palindromes.push(fragment.join(" "));
                 }
             },
             _ => { }
