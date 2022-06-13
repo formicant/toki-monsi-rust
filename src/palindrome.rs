@@ -6,7 +6,7 @@ mod tests;
 use std::sync::Arc;
 use rayon::prelude::*;
 
-use graph::{Graph, Node, StartEdge};
+use graph::{Graph, Node, Edge};
 
 
 
@@ -20,16 +20,17 @@ impl PalindromeGenerator {
     }
     
     pub fn generate(&self, max_word_count: usize) -> Vec<String> {
-        let palindromes = self.graph.start_edges.par_iter()
-            .flat_map(|start_edge| get_palindromes_by_start_edge(&self.graph, &start_edge, max_word_count))
-            .collect();
-        
-        palindromes
+        match self.graph.edges_form_node.get(&Arc::new(Node::Start)) {
+            Some(start_edges) => start_edges.par_iter()
+                .flat_map(|start_edge| get_palindromes_by_start_edge(&self.graph, &start_edge, max_word_count))
+                .collect(),
+            None => Vec::new(),
+        }
     }
 }
 
 
-fn get_palindromes_by_start_edge(graph: &Graph, start_edge: &StartEdge, max_word_count: usize) -> Vec<String> {
+fn get_palindromes_by_start_edge(graph: &Graph, start_edge: &Edge, max_word_count: usize) -> Vec<String> {
     let mut palindromes = Vec::new();
     
     let mut stack = vec![(

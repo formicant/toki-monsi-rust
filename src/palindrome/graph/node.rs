@@ -6,17 +6,19 @@ use unicode_segmentation::UnicodeSegmentation;
 #[cfg_attr(test, derive(Debug))]
 #[derive(PartialEq, Eq, Hash)]
 pub enum Node {
-    Final,
+    Start,
     Head(String),
     Tail(String),
+    Final,
 }
 
 impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Final      => write!(f, "-"),
+            Self::Start      => write!(f, "[start]"),
             Self::Head(head) => write!(f, "{head}-"),
             Self::Tail(tail) => write!(f, "-{tail}"),
+            Self::Final      => write!(f, "-"),
         }
     }
 }

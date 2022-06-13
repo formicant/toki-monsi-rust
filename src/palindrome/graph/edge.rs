@@ -2,8 +2,9 @@ use std::sync::Arc;
 use std::fmt;
 use std::collections::HashSet;
 use caseless::default_case_fold_str;
+use unicode_segmentation::UnicodeSegmentation;
 
-use super::{Node, StartEdge};
+use super::Node;
 
 
 #[cfg_attr(test, derive(Debug, PartialEq, Eq))]
@@ -20,7 +21,35 @@ impl fmt::Display for Edge {
 }
 
 impl Edge {
-    pub fn get_all(start_edges: &[StartEdge], word_list: &[&str]) -> Vec<Self> {
+    pub fn get_start_edges(word_list: &[&str]) -> Vec<Self> {
+        let mut start_edges = Vec::new();
+        let start_node = Arc::new(Node::Start);
+        
+        for &word in word_list {
+            let caseless_word = default_case_fold_str(word);
+            
+            for (index, _) in caseless_word.grapheme_indices(true) {
+                if let Some(to_node) = Node::try_create(&caseless_word, &caseless_word[..index]) {
+                    start_edges.push(Self {
+                        from_node: Arc::clone(&start_node),
+                        word: String::from(word),
+                        to_node,
+                    });
+                }
+                if let Some(to_node) = Node::try_create(&caseless_word[index..], &caseless_word) {
+                    start_edges.push(Self {
+                        from_node: Arc::clone(&start_node),
+                        word: String::from(word),
+                        to_node,
+                    });
+                }
+            }
+        }
+    
+        start_edges
+    }
+
+    pub fn get_other_edges(start_edges: &[Edge], word_list: &[&str]) -> Vec<Self> {
         let mut edges = Vec::new();
         
         let mut visited_nodes: HashSet<_> = start_edges.iter().map(|edge| Arc::clone(&edge.to_node)).collect();
@@ -36,6 +65,7 @@ impl Edge {
                     Node::Final      => Node::try_create(&caseless_word, ""),
                     Node::Head(head) => Node::try_create(&caseless_word, &head),
                     Node::Tail(tail) => Node::try_create(&tail, &caseless_word),
+                    Node::Start      => panic!(),
                 };
                 if let Some(to_node) = possible_to_node {
                     edges.push(Self {

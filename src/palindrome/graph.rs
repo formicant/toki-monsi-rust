@@ -1,5 +1,4 @@
 pub mod node;
-pub mod start_edge;
 pub mod edge;
 
 #[cfg(test)]
@@ -12,33 +11,26 @@ use itertools::Itertools;
 use priority_queue::PriorityQueue;
 
 pub use node::Node;
-pub use start_edge::StartEdge;
 pub use edge::Edge;
 
 
 pub struct Graph {
-    pub start_edges: Vec<StartEdge>,
     pub edges_form_node: HashMap<Arc<Node>, Vec<Edge>>,
     pub node_distances: HashMap<Arc<Node>, usize>,
 }
 
 impl Graph {
     pub fn build(word_list: &[&str]) -> Self {
-        let all_start_edges = StartEdge::get_all(word_list);
-        let all_edges = Edge::get_all(&all_start_edges, word_list);
+        let start_edges = Edge::get_start_edges(word_list);
+        let other_edges = Edge::get_other_edges(&start_edges, word_list);
         
-        let node_distances = calculate_distances(&all_edges);
+        let node_distances = calculate_distances(&other_edges);
         
-        let start_edges = all_start_edges.into_iter()
-            .filter(|start_edge| node_distances.contains_key(&start_edge.to_node))
-            .collect();
-        
-        let edges_form_node = all_edges.into_iter()
+        let edges_form_node = start_edges.into_iter().chain(other_edges)
             .filter(|edge| node_distances.contains_key(&edge.to_node))
             .into_group_map_by(|edge| Arc::clone(&edge.from_node));
         
         Graph {
-            start_edges,
             edges_form_node,
             node_distances,
         }
