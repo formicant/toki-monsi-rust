@@ -4,7 +4,6 @@ use std::process;
 use std::path::PathBuf;
 use std::fs::File;
 use std::io::{BufWriter, Write};
-use std::time::Instant;
 use structopt::StructOpt;
 
 use toki_monsi_rust::*;
@@ -20,7 +19,7 @@ fn main() {
 }
 
 fn write_to_stdout(max_word_count: usize, sort: Option<SortCriterion>) {
-    let palindromes = generate_palindromes(max_word_count, sort);
+    let (palindromes, _) = generate_palindromes(max_word_count, sort);
     
     for palindrome in palindromes {
         println!("{palindrome}");
@@ -39,15 +38,11 @@ fn write_to_file(max_word_count: usize, sort: Option<SortCriterion>, file_path: 
     
     println!("Generating palindromes with max word count {max_word_count}...");
     
-    let start_time = Instant::now();
-    let palindromes = generate_palindromes(max_word_count, sort);
-    let end_time = Instant::now();
-    
-    let elapsed = (end_time - start_time).as_secs_f64();
+    let (palindromes, timing) = generate_palindromes(max_word_count, sort);
     let count = palindromes.len();
     
     println!("  palindromes generated: {count}", );
-    println!("  elapsed: {elapsed:.3} s");
+    println!("Timing: {timing}");
     
     println!("Saving to file '{path_string}'...");
     
