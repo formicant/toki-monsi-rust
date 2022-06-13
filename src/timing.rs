@@ -8,7 +8,7 @@ pub struct Timing {
 
 impl Timing {
     pub fn new() -> Self {
-        Timing { marks: vec![(Instant::now(), "Start".into())] }
+        Timing { marks: vec![(Instant::now(), "Start")] }
     }
     
     pub fn mark(&mut self, name: &'static str) {
