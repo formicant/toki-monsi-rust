@@ -43,7 +43,7 @@ fn get_palindromes_by_start_edge<'a> (graph: &Graph, start_index: usize, max_wor
                 for &next_index in graph.next_edge_indices[index].iter() {
                     let next_edge = &graph.edges[next_index];
                     let word = &next_edge.word[..];
-                    let new_fragment = if next_edge.is_prepending {
+                    let new_fragment = if next_edge.is_prepending() {
                         fragment.clone_and_prepend(word)
                     } else {
                         fragment.clone_and_append(word)

@@ -10,7 +10,6 @@ use super::Node;
 #[cfg_attr(test, derive(Debug, PartialEq, Eq))]
 pub struct Edge {
     pub from_node: Arc<Node>,
-    pub is_prepending: bool,
     pub word: String,
     pub to_node: Arc<Node>,
 }
@@ -22,6 +21,13 @@ impl fmt::Display for Edge {
 }
 
 impl Edge {
+    pub fn is_prepending(&self) -> bool {
+        match *self.from_node {
+            Node::Tail(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn get_start_edges(word_list: &[&str]) -> Vec<Self> {
         let mut start_edges = Vec::new();
         let start_node = Arc::new(Node::Start);
@@ -33,7 +39,6 @@ impl Edge {
                 if let Some(to_node) = Node::try_create(&caseless_word, &caseless_word[..index]) {
                     start_edges.push(Self {
                         from_node: Arc::clone(&start_node),
-                        is_prepending: false,
                         word: String::from(word),
                         to_node,
                     });
@@ -41,7 +46,6 @@ impl Edge {
                 if let Some(to_node) = Node::try_create(&caseless_word[index..], &caseless_word) {
                     start_edges.push(Self {
                         from_node: Arc::clone(&start_node),
-                        is_prepending: false,
                         word: String::from(word),
                         to_node,
                     });
@@ -73,7 +77,6 @@ impl Edge {
                 if let Some(to_node) = possible_to_node {
                     edges.push(Self {
                         from_node: Arc::clone(&from_node),
-                        is_prepending: match *from_node { Node::Tail(_) => true, _ => false },
                         word: String::from(word),
                         to_node: Arc::clone(&to_node),
                     });
