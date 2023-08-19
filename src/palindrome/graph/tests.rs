@@ -13,24 +13,25 @@ fn are_equail_unordered<T: Eq>(actual: &[T], expected: &[T]) -> bool {
 }
 
 
-#[test_case(&[],           &[], &[]; "empty word list")]
-#[test_case(&["pu", "en"], &[], &[]; "no palindrome possible")]
+#[test_case(&[],           &[], &[], &[]; "empty word list")]
+#[test_case(&["pu", "en"], &[], &[], &[]; "no palindrome possible")]
 #[test_case(
     &["a", "ala", "alasa", "kala", "la", "pu"],  // word_list
-    
-    &[  // expected_edges
-        Edge { from_node: a(Start           ), word: s("a"    ), to_node: a(Final           ) },
-        Edge { from_node: a(Start           ), word: s("a"    ), to_node: a(Tail(s("a"    ))) },
-        Edge { from_node: a(Start           ), word: s("ala"  ), to_node: a(Final           ) },
-        Edge { from_node: a(Start           ), word: s("ala"  ), to_node: a(Head(s("al"   ))) },
-        Edge { from_node: a(Start           ), word: s("ala"  ), to_node: a(Tail(s("ala"  ))) },
-        Edge { from_node: a(Start           ), word: s("alasa"), to_node: a(Head(s("al"   ))) },
-        Edge { from_node: a(Start           ), word: s("alasa"), to_node: a(Tail(s("alasa"))) },
-        Edge { from_node: a(Start           ), word: s("kala" ), to_node: a(Head(s("k"    ))) },
-        Edge { from_node: a(Start           ), word: s("kala" ), to_node: a(Head(s("kal"  ))) },
-        Edge { from_node: a(Start           ), word: s("kala" ), to_node: a(Tail(s("ala"  ))) },
-        Edge { from_node: a(Start           ), word: s("la"   ), to_node: a(Head(s("l"    ))) },
-        Edge { from_node: a(Start           ), word: s("la"   ), to_node: a(Tail(s("a"    ))) },
+    &[  // expected_useful_start_edges
+        Edge { from_node: a(Start), word: s("a"    ), to_node: a(Final           ) },
+        Edge { from_node: a(Start), word: s("a"    ), to_node: a(Tail(s("a"    ))) },
+        Edge { from_node: a(Start), word: s("ala"  ), to_node: a(Final           ) },
+        Edge { from_node: a(Start), word: s("ala"  ), to_node: a(Head(s("al"   ))) },
+        Edge { from_node: a(Start), word: s("ala"  ), to_node: a(Tail(s("ala"  ))) },
+        Edge { from_node: a(Start), word: s("alasa"), to_node: a(Head(s("al"   ))) },
+        Edge { from_node: a(Start), word: s("alasa"), to_node: a(Tail(s("alasa"))) },
+        Edge { from_node: a(Start), word: s("kala" ), to_node: a(Head(s("k"    ))) },
+        Edge { from_node: a(Start), word: s("kala" ), to_node: a(Head(s("kal"  ))) },
+        Edge { from_node: a(Start), word: s("kala" ), to_node: a(Tail(s("ala"  ))) },
+        Edge { from_node: a(Start), word: s("la"   ), to_node: a(Head(s("l"    ))) },
+        Edge { from_node: a(Start), word: s("la"   ), to_node: a(Tail(s("a"    ))) },
+    ],
+    &[  // expected_useful_other_edges
         Edge { from_node: a(Head(s("al"   ))), word: s("la"   ), to_node: a(Final           ) },
         Edge { from_node: a(Head(s("k"    ))), word: s("kala" ), to_node: a(Tail(s("ala"  ))) },
         Edge { from_node: a(Head(s("kal"  ))), word: s("la"   ), to_node: a(Head(s("k"    ))) },
@@ -63,20 +64,21 @@ fn are_equail_unordered<T: Eq>(actual: &[T], expected: &[T]) -> bool {
 )]
 fn test_graph(
     word_list: &[&str],
-    expected_edges: &[Edge],
+    expected_useful_start_edges: &[Edge],
+    expected_useful_other_edges: &[Edge],
     expected_node_distances: &[(Arc<Node>, usize)]
 ) {
     let graph = Graph::build(word_list);
     
-    let are_edges_grouped_correctly = graph.edges_form_node.iter()
-        .map(|(node, edges)| edges.iter().all(|edge| edge.from_node == *node))
-        .all(|x| x);
-    let actual_edges: Vec<_> = graph.edges_form_node.into_iter()
-        .flat_map(|(_, edges)| edges)
-        .collect();
+    let is_useful = |edge: &Edge| {
+        graph.node_distances.contains_key(&edge.to_node)
+    };
+    let actual_useful_start_edges: Vec<_> = graph.start_edges.into_iter().filter(is_useful).collect();
+    let actual_useful_other_edges: Vec<_> = graph.other_edges.into_iter().filter(is_useful).collect();
+    
     let actual_node_distances: Vec<_> = graph.node_distances.into_iter().collect();
     
-    assert!(are_edges_grouped_correctly);
-    assert!(are_equail_unordered(&actual_edges, &expected_edges));
+    assert!(are_equail_unordered(&actual_useful_start_edges, &expected_useful_start_edges));
+    assert!(are_equail_unordered(&actual_useful_other_edges, &expected_useful_other_edges));
     assert!(are_equail_unordered(&actual_node_distances, &expected_node_distances));
 }

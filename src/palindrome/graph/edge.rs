@@ -7,7 +7,8 @@ use unicode_segmentation::UnicodeSegmentation;
 use super::Node;
 
 
-#[cfg_attr(test, derive(Debug, PartialEq, Eq))]
+#[cfg_attr(test, derive(Debug))]
+#[derive(PartialEq, Eq, Hash)]
 pub struct Edge {
     pub from_node: Arc<Node>,
     pub word: String,
@@ -55,7 +56,7 @@ impl Edge {
     
         start_edges
     }
-
+    
     pub fn get_other_edges(start_edges: &[Edge], word_list: &[&str]) -> Vec<Self> {
         let mut edges = Vec::new();
         

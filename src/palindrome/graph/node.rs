@@ -49,7 +49,7 @@ impl Node {
                     return Some(Arc::new(Self::Tail(tail)));
                 }
                 // iterators get different graphemes
-                // the srings are not palindromic
+                // the strings are not palindromic
                 (Some((_, forward_grapheme)), Some((_, backward_grapheme))) => {
                     if forward_grapheme != backward_grapheme {
                         return None;

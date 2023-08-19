@@ -1,8 +1,8 @@
 mod node;
 mod edge;
 
-// #[cfg(test)]
-// mod tests;
+#[cfg(test)]
+mod tests;
 
 use std::sync::Arc;
 use std::iter::Iterator;
@@ -10,15 +10,14 @@ use std::collections::HashMap;
 use itertools::Itertools;
 use priority_queue::PriorityQueue;
 
-use node::Node;
-use edge::Edge;
+pub use node::Node;
+pub use edge::Edge;
 
 
 pub struct Graph {
-    pub edges: Vec<Edge>,
-    pub start_edge_indices: Vec<usize>,
-    pub next_edge_indices: Vec<Vec<usize>>,
-    pub edge_distances: Vec<usize>,
+    pub start_edges: Vec<Edge>,
+    pub other_edges: Vec<Edge>,
+    pub node_distances: HashMap<Arc<Node>, usize>,
 }
 
 impl Graph {
@@ -27,33 +26,11 @@ impl Graph {
         let other_edges = Edge::get_other_edges(&start_edges, word_list);
         
         let node_distances = calculate_distances(&other_edges);
-        
-        let edges: Vec<_> = start_edges.into_iter().chain(other_edges)
-            .filter(|edge| node_distances.contains_key(&edge.to_node))
-            .collect();
-        
-        let indices_from_node = edges.iter().enumerate()
-            .map(|(index, edge)| (Arc::clone(&edge.from_node), index))
-            .into_group_map();
-        
-        let next_edge_indices: Vec<_> = edges.iter()
-            .map(|edge| indices_from_node[&edge.to_node].clone())
-            .collect();
-        
-        let start_edge_indices: Vec<_> = match indices_from_node.get(&Node::Start) {
-            Some(indices) => indices.clone(),
-            None => Vec::new(),
-        };
-        
-        let edge_distances: Vec<_> = edges.iter()
-            .map(|edge| node_distances[&edge.to_node])
-            .collect();
-        
+
         Graph {
-            edges,
-            start_edge_indices,
-            next_edge_indices,
-            edge_distances
+            start_edges,
+            other_edges,
+            node_distances,
         }
     }
 }
