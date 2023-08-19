@@ -4,7 +4,7 @@ mod vec_ext;
 #[cfg(test)]
 mod tests;
 
-use std::sync::Arc;
+use std::rc::Rc;
 use itertools::Itertools;
 use rayon::prelude::*;
 
@@ -42,7 +42,7 @@ impl PalindromeGenerator {
         
         let indices_from_node = useful_edges.iter()
             .enumerate()
-            .map(|(index, edge)| (Arc::clone(&edge.from_node), index))
+            .map(|(index, edge)| (Rc::clone(&edge.from_node), index))
             .into_group_map();
         
         let steps: Vec<_> = useful_edges.into_iter()

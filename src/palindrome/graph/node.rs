@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::rc::Rc;
 use std::fmt;
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -24,7 +24,7 @@ impl fmt::Display for Node {
 }
 
 impl Node {
-    pub fn try_create<'a>(forward: &'a str, backward: &'a str) -> Option<Arc<Self>> {
+    pub fn try_create<'a>(forward: &'a str, backward: &'a str) -> Option<Rc<Self>> {
         let mut forward_iter = forward.grapheme_indices(true);
         let mut backward_iter = backward.grapheme_indices(true).rev();
         
@@ -34,19 +34,19 @@ impl Node {
                 // both iterators ended
                 // one string is the complete reverse of the other
                 (None, None) => {
-                    return Some(Arc::new(Self::Final));
+                    return Some(Rc::new(Self::Final));
                 }
                 // forward iterator ended
                 // place the rest of the backward string into a head node
                 (None, Some((index, grapheme))) => {
                     let head = String::from(&backward[..index + grapheme.len()]);
-                    return Some(Arc::new(Self::Head(head)));
+                    return Some(Rc::new(Self::Head(head)));
                 }
                 // backward iterator ended
                 // place the rest of the forward string into a tail node
                 (Some((index, _)), None) => {
                     let tail = String::from(&forward[index..]);
-                    return Some(Arc::new(Self::Tail(tail)));
+                    return Some(Rc::new(Self::Tail(tail)));
                 }
                 // iterators get different graphemes
                 // the strings are not palindromic
